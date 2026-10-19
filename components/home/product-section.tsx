@@ -5,16 +5,20 @@ import { SectionHeading } from "./section-heading";
 type Props = {
   title: string;
   href: string;
+  linkLabel?: string;
   products: Product[];
 };
 
-export function ProductSection({ title, href, products }: Props) {
+export function ProductSection({ title, href, linkLabel, products }: Props) {
+  // The grid is 3 columns on tablet; hide any partial last row there.
+  const tabletCount = Math.floor(products.length / 3) * 3 || products.length;
+
   return (
     <section className="section bg-paper">
-      <SectionHeading title={title} href={href} />
-      <ul className="container-bleed product-grid bg-line-subtle md:max-lg:[&>li:nth-child(n+7)]:hidden">
-        {products.map((product) => (
-          <li key={product.slug} className="flex">
+      <SectionHeading title={title} href={href} linkLabel={linkLabel} />
+      <ul className="container-bleed product-grid bg-line-subtle">
+        {products.map((product, index) => (
+          <li key={product.slug} className={index >= tabletCount ? "flex md:max-lg:hidden" : "flex"}>
             <ProductCard
               product={product}
               sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
