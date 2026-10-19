@@ -1,26 +1,282 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   Design tokens
+   Monochrome, image-led, square-edged. Small, tightly tracked type; colour
+   comes from imagery, not UI chrome.
+   ========================================================================== */
+
+@theme {
+  /* Colour ----------------------------------------------------------------- */
+  --color-ink: #000000;          /* text, primary buttons, structural rules */
+  --color-paper: #ffffff;        /* page background */
+  --color-surface: #fbfbfb;      /* product image tiles */
+  --color-surface-strong: #f2f2f2; /* hover / pressed surfaces, skeletons */
+  --color-muted: #6b6b6b;        /* secondary text, inactive nav */
+  --color-subtle: #9b9b9b;       /* placeholders, disabled text */
+  --color-line: #000000;         /* strong dividers, outline buttons */
+  --color-line-subtle: #e6e6e6;  /* quiet dividers, input borders */
+  --color-scrim: rgb(0 0 0 / 0.35); /* overlay for text on imagery */
+  --color-danger: #b3261e;       /* functional only: errors, sale */
+  --color-success: #1e6b3a;      /* functional only: confirmations */
+
+  /* Typography ------------------------------------------------------------- */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-2xs--letter-spacing: -0.02em;
+  --text-xs: 0.75rem;            /* 12px: labels, captions, product names, buttons */
+  --text-xs--line-height: 1rem;
+  --text-xs--letter-spacing: -0.03em;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-sm--letter-spacing: -0.03em;
+  --text-base: 1rem;             /* 16px: body and section headings */
+  --text-base--line-height: 1.5rem;
+  --text-base--letter-spacing: -0.03em;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+  --text-lg--letter-spacing: -0.03em;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 2rem;
+  --text-xl--letter-spacing: -0.035em;
+  --text-2xl: 2rem;              /* editorial display, used sparingly */
+  --text-2xl--line-height: 2.5rem;
+  --text-2xl--letter-spacing: -0.04em;
+  --text-3xl: 3rem;
+  --text-3xl--line-height: 3.25rem;
+  --text-3xl--letter-spacing: -0.04em;
+
+  /* Layout ----------------------------------------------------------------- */
+  --container-page: 90rem;       /* 1440px content max-width */
+  --container-prose: 40rem;      /* readable text measure */
+
+  /* Motion ----------------------------------------------------------------- */
+  --ease-luxe: cubic-bezier(0.5, 0, 0, 1);
+  --default-transition-duration: 400ms;
+  --default-transition-timing-function: var(--ease-luxe);
+}
+
+/* Responsive spacing values exposed as utilities: px-gutter, py-section, h-header */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --gutter: 1rem;      /* 16px mobile */
+  --section: 3rem;     /* 48px vertical rhythm between page sections */
+  --header: 3.5rem;    /* 56px */
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (width >= 48rem) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --gutter: 2rem;    /* 32px tablet */
+    --section: 5rem;
+  }
+}
+@media (width >= 64rem) {
+  :root {
+    --gutter: 4rem;    /* 64px desktop */
+    --section: 7.5rem;
+    --header: 4.5rem;  /* 72px */
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --spacing-gutter: var(--gutter);
+  --spacing-section: var(--section);
+  --spacing-header: var(--header);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper font-sans text-base text-ink antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  hr {
+    @apply border-line-subtle;
+  }
+
+  ::selection {
+    @apply bg-ink text-paper;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  img, video {
+    @apply block max-w-full;
+  }
+}
+
+/* ==========================================================================
+   Typography roles
+   ========================================================================== */
+
+@utility type-display {
+  @apply text-2xl font-medium md:text-3xl;
+}
+@utility type-heading {
+  @apply text-base font-bold uppercase;
+}
+@utility type-title {
+  @apply text-base font-medium;
+}
+@utility type-body {
+  @apply text-base font-normal;
+}
+@utility type-label {
+  @apply text-xs font-bold uppercase;
+}
+@utility type-caption {
+  @apply text-xs font-normal;
+}
+@utility type-price {
+  @apply text-xs font-medium tabular-nums;
+}
+
+/* ==========================================================================
+   Layout primitives
+   ========================================================================== */
+
+/* Centred page content with responsive side gutters */
+@utility container-page {
+  @apply mx-auto w-full max-w-(--container-page) px-gutter;
+}
+
+/* Edge-to-edge content (heroes, product grids), still capped on ultra-wide */
+@utility container-bleed {
+  @apply mx-auto w-full max-w-[120rem];
+}
+
+/* Readable text column */
+@utility container-prose {
+  @apply mx-auto w-full max-w-(--container-prose) px-gutter;
+}
+
+/* Vertical rhythm between page sections */
+@utility section {
+  @apply py-section;
+}
+
+/* Vertical flow with consistent gaps */
+@utility stack {
+  @apply flex flex-col gap-4;
+}
+@utility stack-tight {
+  @apply flex flex-col gap-2;
+}
+@utility stack-loose {
+  @apply flex flex-col gap-8;
+}
+
+/* Horizontal group that wraps on small screens */
+@utility cluster {
+  @apply flex flex-wrap items-center gap-x-4 gap-y-2;
+}
+
+/* Product listing: hairline-gutter grid, 2 → 3 → 4 columns */
+@utility product-grid {
+  @apply grid grid-cols-2 gap-px md:grid-cols-3 lg:grid-cols-4;
+}
+
+/* Image frame for product shots: tinted tile, object centred and contained */
+@utility media-frame {
+  @apply relative aspect-square overflow-hidden bg-surface;
+
+  & > img,
+  & > video {
+    @apply size-full object-contain;
+  }
+}
+
+/* Image frame for editorial / campaign imagery: fills the frame */
+@utility media-cover {
+  @apply relative overflow-hidden;
+
+  & > img,
+  & > video {
+    @apply size-full object-cover;
+  }
+}
+
+/* Gradient scrim so overlaid text stays legible on imagery */
+@utility scrim {
+  @apply pointer-events-none absolute inset-0 bg-linear-to-t from-scrim to-transparent;
+}
+
+/* ==========================================================================
+   Buttons
+   Square, 48px tall, uppercase 12px bold. Combine `btn` with one variant.
+   ========================================================================== */
+
+@utility btn {
+  @apply inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-none border px-6 type-label whitespace-nowrap transition-colors select-none;
+  @apply disabled:pointer-events-none disabled:opacity-40 aria-disabled:pointer-events-none aria-disabled:opacity-40;
+}
+@utility btn-primary {
+  @apply border-ink bg-ink text-paper hover:bg-paper hover:text-ink;
+}
+@utility btn-secondary {
+  @apply border-paper bg-paper text-ink hover:border-ink hover:bg-ink hover:text-paper;
+}
+@utility btn-outline {
+  @apply border-line bg-transparent text-ink hover:bg-ink hover:text-paper;
+}
+@utility btn-ghost {
+  @apply h-auto border-transparent px-0 underline-offset-4 hover:underline;
+}
+@utility btn-sm {
+  @apply h-9 px-4;
+}
+@utility btn-block {
+  @apply w-full;
+}
+
+/* Square icon button for header actions (bag, account, search, menu) */
+@utility btn-icon {
+  @apply inline-flex size-10 cursor-pointer items-center justify-center text-ink transition-opacity hover:opacity-60;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+/* Inline link inside body copy: always underlined */
+@utility link {
+  @apply underline decoration-1 underline-offset-[3px] transition-opacity hover:opacity-60;
+}
+
+/* Navigation link: underline appears on hover / when current */
+@utility link-nav {
+  @apply text-xs font-medium decoration-1 underline-offset-4 hover:underline aria-[current=page]:font-bold aria-[current=page]:uppercase;
+}
+
+/* Secondary navigation (category filters etc.): muted until active */
+@utility link-muted {
+  @apply text-muted transition-colors hover:text-ink aria-[current=page]:text-ink;
+}
+
+/* ==========================================================================
+   Borders
+   ========================================================================== */
+
+@utility rule {
+  @apply border-t border-line;
+}
+@utility rule-subtle {
+  @apply border-t border-line-subtle;
 }
