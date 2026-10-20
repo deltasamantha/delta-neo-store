@@ -6,21 +6,16 @@ import { ProductAccordion } from "@/components/product/product-accordion";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductPurchase } from "@/components/product/product-purchase";
 import { StockStatus } from "@/components/product/stock-status";
-import {
-  categoryNames,
-  formatPrice,
-  getProduct,
-  getRelatedProducts,
-  getStockStatus,
-  products,
-} from "@/lib/catalog";
+import { formatPrice, getStockStatus } from "@/lib/catalog";
+import { getAllProductSlugs, getProductBySlug, getRelatedProducts } from "@/lib/db/queries/catalog";
 
-export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+export async function generateStaticParams() {
+  const slugs = await getAllProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/products/[slug]">): Promise<Metadata> {
-  const product = getProduct((await params).slug);
+  const product = await getProductBySlug((await params).slug);
   if (!product) return {};
 
   return {
@@ -31,11 +26,12 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
 }
 
 export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
-  const product = getProduct((await params).slug);
+  const product = await getProductBySlug((await params).slug);
   if (!product) notFound();
 
-  const category = categoryNames[product.category];
+  const category = product.categoryName;
   const soldOut = getStockStatus(product.stock) === "sold-out";
+  const related = await getRelatedProducts({ slug: product.slug, category: product.category });
 
   return (
     <main id="main">
@@ -108,7 +104,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
         title="You may also like"
         href={`/${product.category}`}
         linkLabel={`Shop ${category}`}
-        products={getRelatedProducts(product)}
+        products={related}
       />
     </main>
   );
