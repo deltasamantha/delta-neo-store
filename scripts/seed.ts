@@ -1,10 +1,12 @@
 // Loads the initial catalog: `pnpm db:seed`. Safe to re-run: categories and products are
 // upserted by slug, and existing stock levels are left untouched.
-import "dotenv/config";
+import { loadEnvConfig } from "@next/env";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { seedCategories, seedProducts } from "@/lib/db/seed-data";
 import * as schema from "@/lib/db/schema";
+
+loadEnvConfig(process.cwd());
 
 // lib/db is server-only (it can't be imported outside Next), so the script builds its own client.
 if (!process.env.DATABASE_URL) {

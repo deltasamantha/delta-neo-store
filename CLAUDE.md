@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-E-commerce app built with Next.js 16 (App Router), React 19, Tailwind CSS v4, Better Auth, Drizzle ORM and Neon Postgres. Currently only the foundation is in place: there are no store features, no database tables and no auth UI yet.
+E-commerce app built with Next.js 16 (App Router), React 19, Tailwind CSS v4, Better Auth, Drizzle ORM and Neon Postgres. The storefront (home page and product detail page) reads its catalog (categories, products, stock) from Postgres. There is no cart, checkout or auth UI yet.
 
 ## Commands
 
@@ -22,11 +22,12 @@ pnpm auth:generate   # Better Auth CLI → writes auth tables to lib/db/schema/a
 pnpm db:generate     # drizzle-kit: diff schema → SQL migration in ./drizzle
 pnpm db:migrate      # drizzle-kit: apply migrations to DATABASE_URL
 pnpm db:studio       # drizzle-kit studio
+pnpm db:seed         # load/refresh the catalog from lib/db/seed-data.ts (idempotent)
 ```
 
 There is no test runner set up yet.
 
-Environment: copy `.env.example` to `.env` and set `DATABASE_URL` (Neon), `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`.
+Environment: copy `.env.example` to `.env.local` (or `.env`) and set `DATABASE_URL` (Neon), `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`.
 
 ## Architecture
 
@@ -38,6 +39,15 @@ Environment: copy `.env.example` to `.env` and set `DATABASE_URL` (Neon), `BETTE
 
   After changing auth plugins or config, re-run `pnpm auth:generate` and then `db:generate`/`db:migrate`.
 - **Server-only boundary**: `lib/db` and `lib/auth.ts` import `"server-only"`. Never import them from Client Components; use `authClient` instead.
+
+## Database conventions
+
+- **Migrations**: versioned only. Run `db:generate`, review the SQL in `./drizzle`, commit it, then `db:migrate`. Never use `drizzle-kit push`.
+- **Catalog model**: `categories` 1─< `products` 1─1 `stocks` (`lib/db/schema/catalog.ts`). Keep it to these three tables; don't add carts, orders, payments, reviews, wishlists or product variants until asked.
+- **Columns**: `uuid` primary keys (`defaultRandom()`), a unique `slug` as the public identifier, prices as integer cents, and `created_at`/`updated_at` as `timestamptz`. Images and details stay on the product row (`jsonb` / `text[]`), not in child tables.
+- **Stock** lives in `stocks`, not on `products`. A missing stock row means 0 (sold out). Products are hidden with `is_active = false`, not deleted, and every storefront query filters on it.
+- **Reads**: pages read only through `lib/db/queries/*` (`"use cache"` + `cacheTag("catalog")`). Queries map rows to the `Product`/`Category` types in `lib/catalog.ts`, so components never see database rows. Call `revalidateTag("catalog")` after any catalog or stock write.
+- **Scripts outside Next** (seeds, CLI): don't import `lib/db`, because it's server-only. Build a client with `drizzle(process.env.DATABASE_URL, { schema })` and load env with `loadEnvConfig(process.cwd())` from `@next/env`, not `dotenv`. Seeds must be idempotent (upsert by slug) and must not overwrite existing stock.
 
 ## Next.js config notes (`next.config.ts`)
 
