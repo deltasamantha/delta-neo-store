@@ -44,8 +44,10 @@ Inspect the current ecomerce project and plan how to replace the current product
   Show me the database structure, relationships, files that need to change, migration approch and how the existing store front will start using the database.
 
 ## P5
-
+Update the CLAUDE.md with only the database conventions from this decision that Claude should remember in future sessions.
 
 ## P6
+ Show me the important changes you made and explain anything that I should review
+  carefully.
 
 ## P7
