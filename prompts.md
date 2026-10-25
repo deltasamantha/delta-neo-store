@@ -38,8 +38,13 @@ Buils the product detail page with large imagery, product information, procing, 
 Keep it consistant with the home page and product listing
 
 ## P4
+Inspect the current ecomerce project and plan how to replace the current product data with a real PostgerSQL database using Drizzle orm.
+  For now we only need products, categories and stocks.
+  Study how existing storefront currently use the product data before deciding the schema. Keep this first version simple. Do not add carts, orders, payments, reviews, wishlists ot product varients yet.
+  Show me the database structure, relationships, files that need to change, migration approch and how the existing store front will start using the database.
 
 ## P5
+
 
 ## P6
 
